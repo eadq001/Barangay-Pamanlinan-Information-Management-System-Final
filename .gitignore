@@ -1,3 +1,7 @@
 #ignore all video files
 
 *.mp4
+# ignore archive files (prevent committing large RAR archives)
+*.rar
+# specifically ensure the project archive isn't tracked
+pamanlinan.rar
