@@ -194,41 +194,121 @@
     <?php
     include 'connection.php';
 
-    // Fetch bulletins from database ordered by event_date
-    $query = "SELECT * FROM bulletins ORDER BY CASE 
-        WHEN event_date IS NULL THEN 1 
-        ELSE 0 
-    END, event_date DESC, created_at DESC";
+    function formatEventDate($date, $time = null) {
+        $formattedDate = date('F j, Y', strtotime($date));
+        return $time ? $formattedDate . ' at ' . date('g:i A', strtotime($time)) : $formattedDate;
+    }
+
+    function renderBulletinCard($bulletin) {
+        $title = trim($bulletin['title']);
+        $content = trim($bulletin['content']);
+        
+        if (empty($title) || empty($content)) {
+            return '';
+        }
+
+        $html = '<a href="bulletin_view_user.php?id=' . $bulletin['id'] . '" class="bulletin-card block hover:shadow-lg transition-shadow duration-300">';
+        $html .= '<div class="bulletin-content">';
+        
+        // Title
+        $html .= '<h3>' . htmlspecialchars($title) . '</h3>';
+        
+        // Event date if exists
+        if (!empty($bulletin['event_date'])) {
+            $html .= '<p class="event-date">Event Date: ' . formatEventDate($bulletin['event_date'], $bulletin['event_time']) . '</p>';
+        }
+        
+        // Posted date
+        $html .= '<p class="date">Posted: ' . formatEventDate($bulletin['created_at']) . '</p>';
+        
+        // Image if exists
+        if (!empty($bulletin['image_path'])) {
+            $html .= '<div class="bulletin-image">';
+            $html .= '<img src="' . htmlspecialchars($bulletin['image_path']) . '" alt="Bulletin Image" style="max-width: 100%; height: auto; margin: 10px 0;">';
+            $html .= '</div>';
+        }
+        
+        // Content preview
+        $contentPreview = substr($content, 0, 300);
+        $html .= '<p class="content">' . htmlspecialchars($contentPreview);
+        if (strlen($content) > 300) {
+            $html .= '... <span class="read-more">Read More →</span>';
+        }
+        $html .= '</p>';
+        
+        $html .= '</div></a>';
+        return $html;
+    }
+
+    // Get current date for comparison
+    $today = date('Y-m-d');
+    
+    // Fetch valid bulletins from database
+    $query = "SELECT * FROM bulletins 
+              WHERE title IS NOT NULL 
+              AND TRIM(title) != '' 
+              AND content IS NOT NULL 
+              AND TRIM(content) != ''
+              AND (
+                  -- Upcoming events first
+                  (event_date >= '$today') OR
+                  -- Then past events
+                  (event_date < '$today') OR
+                  -- Then non-event bulletins
+                  (event_date IS NULL)
+              )
+              ORDER BY 
+                CASE 
+                    WHEN event_date >= '$today' THEN 1
+                    WHEN event_date < '$today' THEN 2
+                    WHEN event_date IS NULL THEN 3
+                END,
+                event_date ASC,
+                created_at DESC";
+    
     $result = mysqli_query($conn, $query);
 
     if (mysqli_num_rows($result) > 0) {
-      echo '<section class="bulletins">';
-      echo '<h2>Latest Bulletins & Events</h2>';
-      echo '<div class="bulletin-grid">';
-      
-      while ($row = mysqli_fetch_assoc($result)) {
-        echo '<a href="bulletin_view_user.php?id=' . $row['id'] . '" class="bulletin-card block hover:shadow-lg transition-shadow duration-300">';
-        echo '<div class="bulletin-content">';
-        echo '<h3>' . htmlspecialchars($row['title']) . '</h3>';
-        if ($row['event_date']) {
-            echo '<p class="event-date">Event Date: ' . date('F j, Y', strtotime($row['event_date'])) . 
-                 (!empty($row['event_time']) ? ' at ' . date('g:i A', strtotime($row['event_time'])) : '') . '</p>';
+        echo '<section class="bulletins">';
+        echo '<h2>Latest Bulletins & Events</h2>';
+        
+        // Separate upcoming events section
+        $hasUpcomingEvents = false;
+        $upcomingEvents = '';
+        
+        // Past events and regular bulletins section
+        $otherBulletins = '';
+        
+        while ($row = mysqli_fetch_assoc($result)) {
+            $bulletin = renderBulletinCard($row);
+            
+            if (!empty($row['event_date']) && strtotime($row['event_date']) >= strtotime($today)) {
+                $upcomingEvents .= $bulletin;
+                $hasUpcomingEvents = true;
+            } else {
+                $otherBulletins .= $bulletin;
+            }
         }
-        echo '<p class="date">Posted: ' . date('F j, Y', strtotime($row['created_at'])) . '</p>';
-        if (!empty($row['image_path'])) {
-            echo '<div class="bulletin-image"><img src="' . htmlspecialchars($row['image_path']) . '" alt="Bulletin Image" style="max-width: 100%; height: auto; margin: 10px 0;"></div>';
+        
+        // Display upcoming events if any
+        if ($hasUpcomingEvents) {
+            echo '<div class="mb-8">';
+            echo '<h3 class="text-xl font-semibold text-blue-600 mb-4">Upcoming Events</h3>';
+            echo '<div class="bulletin-grid">' . $upcomingEvents . '</div>';
+            echo '</div>';
         }
-        echo '<p class="content">' . htmlspecialchars(substr($row['content'], 0, 300)) . 
-             (strlen($row['content']) > 300 ? '... <span class="read-more">Read More →</span>' : '') . '</p>';
-        if ($row['event_date']) {
-          echo '<p class="event-date">Event Date: ' . date('F j, Y', strtotime($row['event_date'])) . '</p>';
+        
+        // Display other bulletins
+        if (!empty($otherBulletins)) {
+            if ($hasUpcomingEvents) {
+                echo '<h3 class="text-xl font-semibold text-gray-600 mb-4">Past Events & Announcements</h3>';
+            }
+            echo '<div class="bulletin-grid">' . $otherBulletins . '</div>';
         }
-        echo '</div>';
-      }
-      
-      echo '</div></section>';
+        
+        echo '</section>';
     } else {
-      echo '<p class="no-bulletins">No bulletins available at the moment.</p>';
+        echo '<p class="no-bulletins">No bulletins available at the moment.</p>';
     }
 
     mysqli_close($conn);

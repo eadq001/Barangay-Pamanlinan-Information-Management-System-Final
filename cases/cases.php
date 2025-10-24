@@ -57,8 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $templateProcessor->setValue('incidentType', $incident_type);
             $templateProcessor->setValue('injuriesSustained', $injuries_sustained);
             
-            // Save the generated document
-            $doc_filename = 'case_' . $case_id . '_' . date('Ymd_His') . '.docx';
+            // Format the name for filename (replace spaces with underscores and remove special characters)
+            $formatted_name = preg_replace('/[^a-zA-Z0-9]/', '_', $name);
+            $formatted_name = strtolower(trim($formatted_name, '_'));
+            
+            // Save the generated document with formatted name
+            $doc_filename = $formatted_name . '_case_' . $case_id . '_' . date('Ymd_His') . '.docx';
             $doc_path = __DIR__ . '/generated/' . $doc_filename;
             $templateProcessor->saveAs($doc_path);
             
@@ -207,8 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('No response received from API');
             }
             
-            // Save the PDF and update database
-            $pdf_filename = 'case_' . $case_id . '_' . date('Ymd_His') . '.pdf';
+            // Save the PDF and update database using the same formatted name
+            $pdf_filename = $formatted_name . '_case_' . $case_id . '_' . date('Ymd_His') . '.pdf';
             $pdf_path = __DIR__ . '/generated/' . $pdf_filename;
             
             if (file_put_contents($pdf_path, $response) !== false) {
