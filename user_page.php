@@ -73,6 +73,108 @@
     button:hover {
       background: #00796b;
     }
+
+
+     .bulletins {
+      padding: 20px 0;
+    }
+
+    .bulletin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .bulletin-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .bulletin-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .bulletin-card h3 {
+      color: #004d40;
+      margin: 0 0 10px 0;
+    }
+
+    .date, .event-date {
+      color: #666;
+      font-size: 0.9em;
+      margin: 5px 0;
+    }
+
+    .content {
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+
+    .no-bulletins {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+
+    .bulletin-image {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #f5f5f5;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .bulletin-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .bulletin-card {
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 15px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      background: white;
+    }
+
+    .bulletin-card:hover {
+      border-color: #d1d5db;
+    }
+
+    .bulletin-content {
+      position: relative;
+    }
+
+    .event-date {
+      color: #059669;
+      font-weight: 600;
+      margin: 5px 0;
+    }
+
+    .date {
+      color: #6b7280;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+
+    .read-more {
+      color: #059669;
+      font-weight: 600;
+    }
+
+    .bulletin-card:hover .read-more {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -89,30 +191,52 @@
   </nav>
 
   <main>
-    <section id="announcements">
-      <h2>📢 Announcements</h2>
-      <div class="announcement">
-        <p><strong>Barangay Assembly:</strong> Join us this Sunday, 9:00 AM, at the Barangay Hall.</p>
-      </div>
-      <div class="announcement">
-        <p><strong>Health Mission:</strong> Free medical check-up and dental services this Friday.</p>
-      </div>
-    </section>
+    <?php
+    include 'connection.php';
 
-    <section id="schedule">
-      <h2>🗓 Schedule</h2>
-      <p>• Garbage Collection — Every Tuesday & Friday (6:00 AM)<br>
-         • Barangay Clean-up Drive — Every last Saturday of the month<br>
-         • Youth Sports League — Every weekend at Barangay Court</p>
-    </section>
+    // Fetch bulletins from database ordered by event_date
+    $query = "SELECT * FROM bulletins ORDER BY CASE 
+        WHEN event_date IS NULL THEN 1 
+        ELSE 0 
+    END, event_date DESC, created_at DESC";
+    $result = mysqli_query($conn, $query);
 
-    <section id="notice">
-      <h2>📄 Community Notices</h2>
-      <p>Residents are reminded to update their household information records for 2025.</p>
-    </section>
+    if (mysqli_num_rows($result) > 0) {
+      echo '<section class="bulletins">';
+      echo '<h2>Latest Bulletins & Events</h2>';
+      echo '<div class="bulletin-grid">';
+      
+      while ($row = mysqli_fetch_assoc($result)) {
+        echo '<a href="bulletin_view_user.php?id=' . $row['id'] . '" class="bulletin-card block hover:shadow-lg transition-shadow duration-300">';
+        echo '<div class="bulletin-content">';
+        echo '<h3>' . htmlspecialchars($row['title']) . '</h3>';
+        if ($row['event_date']) {
+            echo '<p class="event-date">Event Date: ' . date('F j, Y', strtotime($row['event_date'])) . 
+                 (!empty($row['event_time']) ? ' at ' . date('g:i A', strtotime($row['event_time'])) : '') . '</p>';
+        }
+        echo '<p class="date">Posted: ' . date('F j, Y', strtotime($row['created_at'])) . '</p>';
+        if (!empty($row['image_path'])) {
+            echo '<div class="bulletin-image"><img src="' . htmlspecialchars($row['image_path']) . '" alt="Bulletin Image" style="max-width: 100%; height: auto; margin: 10px 0;"></div>';
+        }
+        echo '<p class="content">' . htmlspecialchars(substr($row['content'], 0, 300)) . 
+             (strlen($row['content']) > 300 ? '... <span class="read-more">Read More →</span>' : '') . '</p>';
+        if ($row['event_date']) {
+          echo '<p class="event-date">Event Date: ' . date('F j, Y', strtotime($row['event_date'])) . '</p>';
+        }
+        echo '</div>';
+      }
+      
+      echo '</div></section>';
+    } else {
+      echo '<p class="no-bulletins">No bulletins available at the moment.</p>';
+    }
 
+    mysqli_close($conn);
+    ?>
+
+    
     <div style="text-align:center; margin-top:20px;">
-      <button onclick="window.location.href='index.php'">Back to Home</button>
+      <a href="index.php"><button type="button">Back to Home</button></a>
     </div>
   </main>
 
