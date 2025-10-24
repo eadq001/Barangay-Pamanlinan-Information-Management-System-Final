@@ -15,8 +15,8 @@ if (!empty($_SESSION['user_id'])) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Poetsen+One&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="index.css">
   <link rel="shortcut icon" href="pamanlinan.png" type="image/x-icon">
+
   <style>
     * {
       box-sizing: border-box;
@@ -27,50 +27,92 @@ if (!empty($_SESSION['user_id'])) {
     body {
       font-family: 'Inter', sans-serif;
       color: #fff;
-      line-height: 1.6;
+      background: #000;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background-size: cover;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
       position: relative;
-
-
     }
 
+    /* ✅ Background Video */
+    .bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
 
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: -1;
+    }
+
+    /* ✅ Navbar */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
 
     .logo {
-      font-weight: 600;
-      font-size: 1.5rem;
-      color: rgb(24, 252, 47);
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgb(0, 255, 191);
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+      text-transform: uppercase;
+    }
+
+    .logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
     }
 
     .nav-links {
       display: flex;
-      gap: 20px;
+      gap: 25px;
     }
 
     .nav-links a {
+      color: #e0f7fa;
       text-decoration: none;
-      color: rgb(111, 235, 229);
+      font-weight: 600;
       transition: color 0.3s;
-      font-weight: bolder;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-
     }
 
     .nav-links a:hover {
-      color: rgb(230, 238, 4);
+      color: #00ff7f;
     }
 
     .hamburger {
       display: none;
       flex-direction: column;
-      justify-content: space-between;
-      width: 28px;
-      height: 21px;
       cursor: pointer;
+      width: 26px;
+      height: 20px;
+      justify-content: space-between;
     }
 
     .hamburger span {
@@ -80,145 +122,75 @@ if (!empty($_SESSION['user_id'])) {
       border-radius: 2px;
     }
 
+    /* ✅ Main Section */
     .profile-section {
-      margin-top: 110px;
       text-align: center;
-      padding: 1rem;
+      padding: 2rem 1rem;
+      margin-top: 120px;
       animation: fadeIn 1s ease;
-      position: relative;
-      z-index: 1;
+      max-width: 90%;
     }
 
     .profile-pic {
-      border-radius: 85%;
-      width: 250px;
-      height: 250px;
+      border-radius: 50%;
+      width: 180px;
+      height: 180px;
       object-fit: cover;
       margin-bottom: 1rem;
-      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-    }
-
-    .section-box {
-      padding: 2rem;
-      background: rgba(255, 255, 255, 0.05);
-      margin: 1rem;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
     }
 
     h1 {
-      color: black;
-      font-size: bolder;
-      color: rgb(15, 240, 240);
-      margin-bottom: 10px;
-      font-size: 500%;
-      text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+      color: rgb(0, 255, 255);
+      font-size: 3rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
       -webkit-text-stroke: 1px black;
       font-family: "Lilita One", sans-serif;
-      font-weight: 500;
-      font-style: normal;
-    }
-
-    h1,
-    h2 {
-      line-height: 1;
     }
 
     h2 {
-      margin-top: -10px;
-      color: black;
-      font-size: bolder;
       color: rgb(7, 255, 255);
-      margin-bottom: 5px;
-      font-size: 300%;
-      text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
-      -webkit-text-stroke: 1px black;
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+      -webkit-text-stroke: 0.5px black;
       font-family: "Lilita One", sans-serif;
-      font-weight: 200;
-      font-style: normal;
-
-    }
-
-    .section-box p {
-      color: rgb(243, 239, 0);
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-    }
-
-    .footer {
-      margin-top: auto;
-      padding: 1rem;
-      text-align: center;
-      background: #151515;
-    }
-
-    .footer a {
-      color: #49f3eb;
-      margin: 0 10px;
-      text-decoration: none;
-
-    }
-
-    .footer a:hover {
-      color: #ff9100;
-
-    }
-
-    .btn a {
-      font-size: 20px;
-      color: rgb(219, 246, 16);
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
     }
 
     .fancy-button {
       display: inline-block;
-      text-decoration: none;
       background-color: rgb(8, 98, 12);
       color: white;
-      padding: 0.35rem 2rem;
+      padding: 0.6rem 2rem;
       font-size: 1rem;
       font-weight: 600;
       border: 2px solid transparent;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s ease-in-out;
-      position: relative;
-      overflow: hidden;
       margin: 0.5rem;
-      box-shadow: 0 2px 10px rgb(0, 0, 0);
-
-
-    }
-
-
-    .fancy-button:hover::before {
-      left: 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      text-decoration: none;
     }
 
     .fancy-button:hover {
-      color: #fff;
-      border-color: rgb(0, 246, 86);
+      background-color: rgb(0, 180, 60);
+      border-color: rgb(0, 255, 80);
+      transform: scale(1.05);
     }
 
-    .fancy-button span {
-      position: relative;
-      z-index: 1;
-    }
-
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
+    /* ✅ Footer */
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.6);
+      color: #ccc;
       width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.33);
-      /* Green overlay */
-      z-index: 0;
+      font-size: 0.9rem;
     }
 
-
-
-    /* Animations */
+    /* ✅ Animations */
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -231,65 +203,123 @@ if (!empty($_SESSION['user_id'])) {
       }
     }
 
-    @keyframes slideDown {
-      from {
-        transform: translateY(-50px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    /* Responsive */
+    /* ✅ Mobile Responsive */
     @media (max-width: 768px) {
-      body {
-        /* background-image: url('education-med-background.png'); */
-        background-size: cover;
-        background-repeat: no-repeat;
-        padding-top: 80px;
+      header {
+        padding: 15px 20px;
+      }
 
+      .nav-links {
+        position: absolute;
+        top: 70px;
+        right: 0;
+        width: 100%;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        text-align: center;
+        padding: 1rem 0;
+      }
+
+      .nav-links.active {
+        display: flex;
       }
 
       .hamburger {
         display: flex;
-        z-index: 1001;
       }
 
+      .nav-links a {
+        padding: 0.8rem 0;
+        font-size: 1.1rem;
+      }
 
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      h2 {
+        font-size: 1.4rem;
+      }
+
+      .profile-pic {
+        width: 140px;
+        height: 140px;
+      }
+
+      .fancy-button {
+        width: 80%;
+        padding: 0.8rem 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
     }
   </style>
 </head>
 
 <body>
 
-
-  <video autoplay muted loop playsinline class="bg-video">h2
+  <!-- ✅ Background Video -->
+  <video autoplay muted loop playsinline class="bg-video">
     <source src="pamanlinan.mp4" type="video/mp4">
   </video>
   <div class="overlay"></div>
 
+  <!-- ✅ Navbar -->
+  <header>
+    <div class="logo">
+      <img src="pamanlinan.png" alt="Logo">
+      BARANGAY PAMANLINAN
+    </div>
+    <nav class="nav-links">
+      <a href="index.php">Home</a>
+      <a href="about.html">About</a>
+      <a href="login.php">Admin</a>
+      <a href="pamanlinan.php">User</a>
+    </nav>
+    <div class="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </header>
+
+  <!-- ✅ Main Section -->
   <section class="profile-section">
     <img src="pamanlinan.png" alt="Profile Pic" class="profile-pic" />
-    <h1>Barangay Pamanlinan</h1>
-    <h2>Demographic Profiling System</h2><br>
+    <h1>BARANGAY PAMANLINAN </h1>
+    <h2>INFORMATION MANAGEMENT SYSTEM</h2>
+   
     <div class="btn">
-      <a href="login.php" class="fancy-button">LOGIN</a>
-       <a href="about.html" class="fancy-button" style="display:none;">ABOUT</a>
-    </div>
+  <a href="login.php" class="fancy-button">ADMIN</a>
+  <a href="user_page.php" class="fancy-button">USER</a>
+</div>
+
   </section>
 
+  <!-- ✅ Footer -->
+  <footer>
+    &copy; 2025 Barangay Pamanlinan | All Rights Reserved
+  </footer>
 
-
-
+  <!-- ✅ Script for hamburger menu -->
   <script>
-    // Hamburger menu toggle
-    document.querySelector('.hamburger').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('active');
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      hamburger.classList.toggle('open');
     });
   </script>
-</body>
 
+</body>
 </html>

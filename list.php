@@ -339,13 +339,10 @@ $columns = [
 
 <header>
   <nav>
-    <div class="logo">BARANGAY PAMANLINAN DEMOGRAPHIC RECORDS</div>
+    <div class="logo">BARANGAY PAMANLINAN DEMOGRAPHIC MAIN RECORDS</div>
     <ul class="nav-links" id="navLinks">
-      <li><a href="dashboard.php">DASHBOARD</a></li>
-      <li><a href="ageGroup.php">AGE GROUP</a></li>
-      <li><a href="disabilitiesGroup.php">DISABILITIES</a></li>
-      <li><a href="deceased.php">DECEASED</a></li>
-      <li><a href="add.php">ADD</a></li>
+      <li><a href="pamanlinan.php">DASHBOARD</a></li>
+      <li><a href="add.php">REGISTRATION</a></li>
       <li><a href="logout.php">LOGOUT</a></li>
     </ul>
   </nav>

@@ -3,207 +3,273 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <link rel="shortcut icon" href="pamanlinan.png" type="image/x-icon">
-  <title>About Us</title>
+  <link rel="shortcut icon" href="pamanlinan.png" type="image/x-icon">
+  <title>About Barangay Pamanlinan</title>
+
   <style>
-    /* Reset */
+    /* RESET */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
     body {
-      background: #f9f9f9;
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
       color: #333;
       line-height: 1.6;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-       background: linear-gradient(to bottom, #4facfe, #00f2fe); /* Blue gradient */
     }
 
-    
-header {
-  background: #05767c;
-  color: rgb(255, 255, 255);
-  padding: 10px;
-}
+    /* HEADER & NAVIGATION */
+    header {
+      background: rgba(0, 90, 150, 0.9);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
 
-.logo {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-nav {
-  margin-left: 10%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+    }
 
-.nav-links {
-  list-style: none;
-  display: flex;
-  gap: 15px;
-  margin: 0;
-  padding: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+      transition: all 0.3s ease;
+    }
 
-.nav-links a {
-  margin-right: 180px;
-  text-decoration: none;
-  color: rgb(2, 56, 31);
-  font-weight: bold;
-  background-color: #00f2fe;
-  padding: 10px;
-  border-radius: 20px;
-}
+    .nav-links a {
+      text-decoration: none;
+      color: #ffffff;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
 
-.nav-links a:hover {
-  color: #ffffff;
-  background-color: #035e06;
-}
+    .nav-links a:hover {
+      background: #00d084;
+      color: #fff;
+    }
+
+    /* HAMBURGER MENU (for mobile) */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .hamburger span {
+      height: 3px;
+      width: 25px;
+      background: #fff;
+      margin: 4px 0;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        background: rgba(0, 80, 140, 0.95);
+        width: 100%;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        text-align: center;
+        padding: 1rem 0;
+      }
+      .nav-links.active {
+        display: flex;
+      }
+    }
+
+    /* MAIN SECTION */
     main {
       flex: 1;
-      max-width: 80%;
+      max-width: 90%;
       margin: 3rem auto;
-      padding: 0 1.5rem;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 1s ease-in-out;
     }
-    main h1 {
-      margin-left: 15%;
+
+    .profile-pic {
+      display: block;
+      margin: 0 auto 1.5rem;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
       color: #035e06;
-      margin-bottom: 2rem;
-      font-weight: 700;
-      padding-bottom: 0.6rem;
-      
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
     }
-    main p {
+
+    p {
+      color: #222;
       font-size: 1.1rem;
-      margin-bottom: 1.25rem;
-      color: #555;
+      text-align: justify;
+      margin-bottom: 1.5rem;
     }
-    /* New image style */
+
+    h2 {
+      text-align: center;
+      color: #034f9a;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.6rem;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+    }
+
     .about-image {
       display: block;
-      max-width: 70%;
+      max-width: 80%;
       height: auto;
-      margin: 1rem auto 2rem;
+      margin: 0 auto 2rem;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    footer {
-      background: #222;
-      color: #eee;
-      padding: 1.5rem 1rem 3rem;
-      text-align: center;
-      font-size: 0.9rem;
-      position: relative;
-    }
+
+    /* MAP SECTION */
     #mapContainer {
-      max-width: 800px;
-      width: 70%;
-      margin: 2rem auto 0;
-      border-radius: 8px;
+      max-width: 900px;
+      width: 90%;
+      margin: 2rem auto;
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
+
     #mapContainer iframe {
       width: 100%;
-      height: 600px;
-      border: 0;
-      display: block;
+      height: 500px;
+      border: none;
     }
-    /* Responsive */
-    @media (max-width: 900px) {
-      #mapContainer iframe {
-        height: 400px;
+
+    /* FOOTER */
+    footer {
+      background: #022a3d;
+      color: #eee;
+      text-align: center;
+      padding: 2rem 1rem;
+      margin-top: auto;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    footer div {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ANIMATION */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
+
+    /* RESPONSIVE TEXT */
     @media (max-width: 480px) {
-      main {
-        margin: 2rem 1rem;
-      }
-      #mapContainer iframe {
-        height: 300px;
-      }
-    }
-       .profile-pic {
-      border-radius: 85%;
-      width: 250px;
-      height: 250px;
-      object-fit: cover;
-      margin-bottom: 1rem;
-     margin-left: 40%;
-    }
-    main p{
-      font-size: x-large;
-      color: black;
-      text-align: justify;
-    }
-    h2{
-      font-size: 200%;
-      margin-left: 27%;
-      color: #045c08;
-      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.551);
+      h1 { font-size: 1.5rem; }
+      p { font-size: 1rem; }
+      .profile-pic { width: 160px; height: 160px; }
     }
   </style>
 </head>
 <body>
 
-    <header>
+  <header>
     <nav class="navbar">
-      <div class="logo">Barangay Profile</div>
-      <ul class="nav-links">            
+      <div class="logo">Barangay Pamanlinan</div>
+      <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.php">HOME</a></li>
         <li><a href="login.php">LOGIN</a></li>
-        
+        <li><a href="about.html">ABOUT</a></li>
       </ul>
     </nav>
   </header>
 
   <main>
-    <img src="pamanlinan.png" alt="Profile Pic" class="profile-pic" />
-    <h1>Figure No 1. Official Seal Source: Barangay Pamanlinan</h1>
+    <img src="pamanlinan.png" alt="Barangay Seal" class="profile-pic" />
+    <h1>Figure No. 1. Official Seal — Barangay Pamanlinan</h1>
+
     <p>
-      The official seal of the Barangay Pamanlinan features important symbols that represent
-      the livelihood, natural resources, and identify of the community. at the center of the seal is tree
-      along with a account tree, symbolizing the barangay's connection to agriculture and its abundant
-      natural environment. A shrimp is also prominently displayed, represents fishing and aquaculture
-      as one of the main sources of income, especially in parts of the barangay such as Purok 5 & 6 
-      where fishponds are located. The green in the seal signifies growth, fertility, and the community's strong
-      ties to nature, while the color yellow represents hope, optimism, and a bright future for the people of Pamanlinan. Overall, 
-      the seal's design reflects the simplicity of rural life, sustainable livelihoods, and close relationship of the people
-      with their natural surroundings.
-    </p> <br><br>
+      The official seal of Barangay Pamanlinan embodies symbols that represent the livelihood,
+      natural resources, and identity of its people. At the center stands a tree with abundant
+      growth — symbolizing agriculture and the barangay’s deep connection to nature.
+      A shrimp is also depicted, representing fishing and aquaculture, one of the main
+      sources of income in Purok 5 and 6 where fishponds thrive.
+    </p>
+    <p>
+      The color green reflects fertility and sustainability, while yellow signifies hope
+      and optimism for a bright future. Together, these elements reflect the simplicity,
+      resilience, and close relationship of the people with their natural surroundings.
+    </p>
 
-    <h2>BARANGAY PAMANLINAN MAP</h2><br>
-    <!-- Inserted image below -->
-    <img 
-      src="pamanlinan-map.jfif" 
-      alt="Office workspace" 
-      class="about-image"
-    />
+    <h2>Barangay Pamanlinan Map</h2>
+    <img src="pamanlinan-map.jfif" alt="Barangay Map" class="about-image" />
 
-
-
-  <footer>
-    <div>Our Location on Map:</div>
     <div id="mapContainer">
       <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11169.230918982244!2d126.25953816941136!3d8.210854427732638!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x32fdc75f77612f93%3A0xf7fa14ea201a9de7!2sPamanlinan%2C%20City%20Of%20Bislig%2C%20Surigao%20del%20Sur%2C%20Philippines!5e0!3m2!1sen!2sus!4v1751819135945!5m2!1sen!2sus"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11169.230918982244!2d126.25953816941136!3d8.210854427732638!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x32fdc75f77612f93%3A0xf7fa14ea201a9de7!2sPamanlinan%2C%20City%20Of%20Bislig%2C%20Surigao%20Del%20Sur%2C%20Philippines!5e0!3m2!1sen!2sus!4v1751819135945!5m2!1sen!2sus"
         allowfullscreen=""
         loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-      ></iframe>
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
     </div>
+  </main>
+
+  <footer>
+    <div>Barangay Pamanlinan, City of Bislig, Surigao del Sur</div>
+    <div>&copy; 2025 Barangay Information Management System | All Rights Reserved</div>
   </footer>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('nav-links');
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+  </script>
 
 </body>
 </html>
