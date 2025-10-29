@@ -4,7 +4,13 @@ require_once '../connection.php';
 
 $isLoggedIn = isset($_SESSION['user_id']);
 
-$query = "SELECT * FROM cases ORDER BY created_at DESC";
+// Handle search
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+$query = "SELECT * FROM cases";
+if (!empty($search)) {
+    $query .= " WHERE name LIKE '%$search%' OR id LIKE '%$search%'";
+}
+$query .= " ORDER BY created_at DESC";
 $result = mysqli_query($conn, $query);
 
 ?>
@@ -48,7 +54,7 @@ $result = mysqli_query($conn, $query);
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <section class="mb-8">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-gray-900">Recent Cases & Reports</h2>
         <div>
           <a href="index.php" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200">
@@ -59,6 +65,30 @@ $result = mysqli_query($conn, $query);
           </a>
         </div>
       </div>
+      
+      <!-- Search Bar -->
+      <form action="index.php" method="GET" class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div class="flex-1 relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input type="text" 
+                 name="search" 
+                 value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                 placeholder="Search by case number or person's name..." 
+                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Search
+        </button>
+        <?php if(isset($_GET['search']) && !empty($_GET['search'])): ?>
+          <a href="index.php" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Clear
+          </a>
+        <?php endif; ?>
+      </form>
     </section>
 
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
