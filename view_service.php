@@ -140,6 +140,7 @@ button:hover {
 </div>
 
 <div class="table-container">
+  <h3><i class="fa-solid fa-hand-holding-heart"></i> Service Record Details</h3>
   <table>
     <tr><th>Full Name</th><td><?= htmlspecialchars($data['first_name'].' '.$data['middle_name'].' '.$data['last_name'].' '.$data['ext_name']) ?></td></tr>
     <tr><th>Sex</th><td><?= htmlspecialchars($data['sex_name']) ?></td></tr>

@@ -6,156 +6,188 @@ if ($conn->connect_error) {
 
 $id = $_GET['id'] ?? 0;
 $result = $conn->query("SELECT * FROM household_housing WHERE id = $id");
-$data = $result->fetch_assoc();
 
-if (!$data) {
-    die("Record not found.");
+if ($result && $result->num_rows > 0) {
+    $data = $result->fetch_assoc();
+} else {
+    die("<h2>No record found for this survey.</h2>");
+}
+
+function formatValues($value) {
+    if (empty($value)) return "<i style='color:#888;'>No data</i>";
+    $items = array_map('trim', explode(',', $value));
+    $output = "";
+    foreach ($items as $item) {
+        $output .= "<span class='badge'>" . htmlspecialchars($item) . "</span> ";
+    }
+    return $output;
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>View Household Survey</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <style>
 :root {
   --primary: #0b6b2d;
-  --primary-dark: #034b13;
-  --background: #f4f7f5;
-  --white: #ffffff;
-  --text: #333;
-  --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --primary-light: #15803d;
+  --bg: #f4f7f5;
+  --white: #fff;
+  --shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
-
-/* Reset & Base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", Arial, sans-serif;
-}
-
 body {
-  background: var(--background);
-  color: var(--text);
-  padding: 40px;
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  margin: 0;
+  color: #222;
 }
-
-/* Header */
-.header {
+header {
   background: var(--primary);
-  color: var(--white);
-  text-align: center;
-  padding: 1.5rem;
-  border-radius: 10px;
+  color: white;
+  padding: 1.2rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   box-shadow: var(--shadow);
-  margin-bottom: 30px;
 }
-.header h1 {
-  font-size: 1.8rem;
-  margin-bottom: 5px;
+header a {
+  color: white;
+  text-decoration: none;
+  background: rgba(255,255,255,0.15);
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  transition: 0.3s;
 }
-.header p {
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
+header a:hover { background: rgba(255,255,255,0.3); }
 
-/* Container */
 .container {
   background: var(--white);
+  margin: 2rem auto;
+  max-width: 900px;
+  padding: 1.5rem 2rem;
   border-radius: 12px;
   box-shadow: var(--shadow);
-  padding: 2rem;
-  max-width: 950px;
-  margin: 0 auto;
-  border-top: 6px solid var(--primary);
 }
-
-/* Table Design */
-table {
+h1 {
+  text-align: center;
+  color: var(--primary);
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+.table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  font-size: 0.9rem;
 }
-th, td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #e5e5e5;
+.table tr td {
+  padding: 5px 8px;
+  vertical-align: top;
+  border-bottom: 1px solid #e0e0e0;
 }
-th {
-  background: #f1f8f3;
+.table tr td:first-child {
+  font-weight: 600;
   color: var(--primary);
   width: 35%;
-  font-weight: 600;
 }
-td {
-  color: #444;
-  background-color: #fcfcfc;
-}
-
-/* Buttons */
-.buttons {
-  text-align: center;
-  margin-top: 30px;
+.badge {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  margin: 1px;
+  border-radius: 6px;
 }
 button {
+  display: block;
+  margin: 2rem auto;
+  padding: 0.6rem 1.5rem;
   background: var(--primary);
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 1rem;
   cursor: pointer;
-  margin: 0 10px;
-  transition: all 0.3s;
+  font-size: 1rem;
   box-shadow: var(--shadow);
+  transition: 0.3s;
 }
-button:hover {
-  background: var(--primary-dark);
-}
+button:hover { background: var(--primary-light); transform: translateY(-2px); }
 
-/* Print Mode */
+/* ✅ PRINT STYLES - LONG BOND PAPER */
 @media print {
-  .header, .buttons {
-    display: none;
+  @page {
+    size: 8.5in 13in; /* Long bond paper */
+    margin: 10mm;
   }
   body {
-    padding: 0;
     background: white;
+    color: black;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    transform: scale(0.95); /* Slight scale to fit everything neatly */
+    transform-origin: top center;
+  }
+  header, button {
+    display: none;
   }
   .container {
     box-shadow: none;
-    border: none;
+    border-radius: 0;
+    padding: 5mm 10mm;
+    margin: 0;
+    width: 100%;
+  }
+  .table tr td {
+    font-size: 10pt;
+    border-bottom: 1px solid #ccc;
+  }
+  .badge {
+    background: #0b6b2d !important;
+    color: white !important;
+    font-size: 9pt;
+  }
+  h1 {
+    font-size: 14pt;
+    color: #0b6b2d;
   }
 }
 </style>
 </head>
-<body onload="window.print()">
+<body>
 
-<div class="header">
-  <h1><i class="fa-solid fa-house-user"></i> Household / Housing Survey Record</h1>
-  <p>Barangay Pamanlinan Information System</p>
-</div>
+<header>
+  <h2>Barangay Pamanlinan Information System</h2>
+  <a href="household.php">← Back to Form</a>
+</header>
 
 <div class="container">
-  <table>
-    <?php foreach ($data as $key => $value): ?>
-      <?php if ($key != 'id'): ?>
-        <tr>
-          <th><?= ucwords(str_replace("_", " ", $key)) ?></th>
-          <td><?= htmlspecialchars($value) ?></td>
-        </tr>
-      <?php endif; ?>
-    <?php endforeach; ?>
+  <h1>🏠 Household / Housing Survey Result</h1>
+  <table class="table">
+    <tr><td>Type of Building</td><td><?= formatValues($data['type_building']) ?></td></tr>
+    <tr><td>Roof Material</td><td><?= formatValues($data['roof_material']) ?></td></tr>
+    <tr><td>Wall Material</td><td><?= formatValues($data['wall_material']) ?></td></tr>
+    <tr><td>State of Repair</td><td><?= formatValues($data['state_repair']) ?></td></tr>
+    <tr><td>Floor Area</td><td><?= htmlspecialchars($data['floor_area']) ?></td></tr>
+    <tr><td>Year Built</td><td><?= htmlspecialchars($data['year_built']) ?></td></tr>
+    <tr><td>Monthly Rental</td><td><?= htmlspecialchars($data['monthly_rental']) ?></td></tr>
+    <tr><td>Source of Income</td><td><?= formatValues($data['source_income']) ?></td></tr>
+    <tr><td>Tenure Status</td><td><?= formatValues($data['tenure_status']) ?></td></tr>
+    <tr><td>Acquisition</td><td><?= formatValues($data['acquisition']) ?></td></tr>
+    <tr><td>Electricity Source</td><td><?= formatValues($data['electricity_source']) ?></td></tr>
+    <tr><td>Fuel for Cooking</td><td><?= formatValues($data['fuel_cooking']) ?></td></tr>
+    <tr><td>Fuel for Lighting</td><td><?= formatValues($data['fuel_lighting']) ?></td></tr>
+    <tr><td>Garbage Disposal</td><td><?= formatValues($data['garbage_disposal']) ?></td></tr>
+    <tr><td>Water (Drinking)</td><td><?= formatValues($data['water_drinking']) ?></td></tr>
+    <tr><td>Water (Cooking)</td><td><?= formatValues($data['water_cooking']) ?></td></tr>
+    <tr><td>Water (Laundry/Bathing)</td><td><?= formatValues($data['water_laundry']) ?></td></tr>
+    <tr><td>Toilet Facility</td><td><?= formatValues($data['toilet_facility']) ?></td></tr>
+    <tr><td>Internet Access</td><td><?= formatValues($data['internet_access']) ?></td></tr>
+    <tr><td>Household Devices</td><td><?= formatValues($data['household_devices']) ?></td></tr>
   </table>
 
-  <div class="buttons">
-    <button onclick="window.location.href='pamanlinan.php'"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-    <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Again</button>
-  </div>
+  <button onclick="window.print()">🖨️ Print Survey</button>
 </div>
 
 </body>

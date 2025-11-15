@@ -5,46 +5,64 @@ if ($conn->connect_error) {
     die("Database connection failed: " . $conn->connect_error);
 }
 
+// Function to calculate age
+function calculate_age($dob) {
+    $dobDate = new DateTime($dob);
+    $today = new DateTime();
+    return $dobDate->diff($today)->y;
+}
+
 // =================== FORM SUBMISSION ===================
 $showPopup = false;
 $new_id = 0;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $fields = [
-        'last_name', 'first_name', 'middle_name', 'ext_name', 'sex_name',
-        'date_of_birth', 'civil_status', 'place_of_birth', 'street_name',
-        'purok_name', 'cellphone_no', 'valid_id', 'type_id',
-        'service_category', 'sub_service', 'service_date'
-    ];
-    
-    $data = [];
-    foreach ($fields as $field) {
-        $data[$field] = trim($_POST[$field] ?? '');
-    }
 
-    $stmt = $conn->prepare("
-        INSERT INTO services (
-            last_name, first_name, middle_name, ext_name, sex_name, date_of_birth, civil_status,
-            place_of_birth, street_name, purok_name, cellphone_no, valid_id, type_id,
-            service_category, sub_service, service_date
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->bind_param(
-        "ssssssssssssssss",
-        $data['last_name'], $data['first_name'], $data['middle_name'], $data['ext_name'],
-        $data['sex_name'], $data['date_of_birth'], $data['civil_status'], $data['place_of_birth'],
-        $data['street_name'], $data['purok_name'], $data['cellphone_no'], $data['valid_id'],
-        $data['type_id'], $data['service_category'], $data['sub_service'], $data['service_date']
-    );
+    // VALIDATE DATE OF BIRTH ----------------------------------------
+    $dob = $_POST['date_of_birth'];
+    $age = calculate_age($dob);
 
-    if ($stmt->execute()) {
-        $showPopup = true;
-        $new_id = $conn->insert_id;
+    if ($age < 0 || $age > 150) {
+        echo "<script>alert('Invalid Birthdate: Age must be between 0 and 150 years.');</script>";
     } else {
-        echo "<script>alert('Error saving record. Please try again.');</script>";
-    }
 
-    $stmt->close();
+        // Continue saving if valid
+        $fields = [
+            'last_name', 'first_name', 'middle_name', 'ext_name', 'sex_name',
+            'date_of_birth', 'civil_status', 'place_of_birth', 'street_name',
+            'purok_name', 'cellphone_no', 'valid_id', 'type_id',
+            'service_category', 'sub_service', 'service_date'
+        ];
+        
+        $data = [];
+        foreach ($fields as $field) {
+            $data[$field] = trim($_POST[$field] ?? '');
+        }
+
+        $stmt = $conn->prepare("
+            INSERT INTO services (
+                last_name, first_name, middle_name, ext_name, sex_name, date_of_birth, civil_status,
+                place_of_birth, street_name, purok_name, cellphone_no, valid_id, type_id,
+                service_category, sub_service, service_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param(
+            "ssssssssssssssss",
+            $data['last_name'], $data['first_name'], $data['middle_name'], $data['ext_name'],
+            $data['sex_name'], $data['date_of_birth'], $data['civil_status'], $data['place_of_birth'],
+            $data['street_name'], $data['purok_name'], $data['cellphone_no'], $data['valid_id'],
+            $data['type_id'], $data['service_category'], $data['sub_service'], $data['service_date']
+        );
+
+        if ($stmt->execute()) {
+            $showPopup = true;
+            $new_id = $conn->insert_id;
+        } else {
+            echo "<script>alert('Error saving record. Please try again.');</script>";
+        }
+
+        $stmt->close();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -142,24 +160,6 @@ input:focus, select:focus {
   box-shadow: 0 0 5px rgba(13,92,99,0.3);
 }
 
-/* ====== BUTTON ====== */
-button {
-  display: block;
-  margin: 2rem auto 0;
-  background-color: #0d5c63;
-  color: #fff;
-  padding: 0.8rem 2.2rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s;
-}
-button:hover {
-  background-color: #08484d;
-}
-
 /* ====== POPUP SUCCESS MODAL ====== */
 .popup-overlay {
   position: fixed;
@@ -176,17 +176,10 @@ button:hover {
   border-radius: 15px;
   padding: 2rem;
   text-align: center;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-  animation: fadeIn 0.3s ease-in-out;
   max-width: 400px;
 }
 .popup i {
   font-size: 3rem;
-  color: #0d5c63;
-  margin-bottom: 10px;
-}
-.popup h2 {
-  margin: 10px 0;
   color: #0d5c63;
 }
 .popup button {
@@ -196,20 +189,13 @@ button:hover {
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  margin-top: 15px;
-}
-.popup button:hover {
-  background: #08484d;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
 }
 </style>
 </head>
 <body>
+
 <header>
-  <div class="logo">Barangay Pamanlinan Registration</div>
+  <div class="logo">Barangay Pamanlinan Services</div>
   <ul class="nav-links">
     <li><a href="pamanlinan.php">DASHBOARD</a></li>
     <li><a href="list.php">MAIN RECORDS</a></li>
@@ -225,23 +211,32 @@ button:hover {
     <div><label>Last Name</label><input type="text" name="last_name" required></div>
     <div><label>First Name</label><input type="text" name="first_name" required></div>
     <div><label>Middle Name</label><input type="text" name="middle_name"></div>
-    <div><label>Extension Name</label><input type="text" name="ext_name" list="ext-options" placeholder="e.g., Jr."></div>
+    <div><label>Extension Name</label><input type="text" name="ext_name" list="ext-options"></div>
     <datalist id="ext-options">
       <option value="N/A"><option value="Jr."><option value="Sr."><option value="II"><option value="III">
     </datalist>
+
     <div><label>Sex</label>
       <select name="sex_name" required>
         <option value="">-- Select --</option>
-        <option>Male</option><option>Female</option>
+        <option>Male</option>
+        <option>Female</option>
       </select>
     </div>
-    <div><label>Birthdate</label><input type="text" name="date_of_birth" placeholder="MM/DD/YYYY" required></div>
+
+    <!-- FIXED DATE FIELD -->
+    <div>
+      <label>Birthdate</label>
+      <input type="date" name="date_of_birth" id="dob" required>
+    </div>
+
     <div><label>Civil Status</label>
       <select name="civil_status" required>
         <option value="">-- Select --</option>
         <option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option>
       </select>
     </div>
+
     <div><label>Place of Birth</label><input type="text" name="place_of_birth" required></div>
   </div>
 
@@ -262,6 +257,7 @@ button:hover {
   <div class="grid">
     <div><label>Valid ID</label><input type="text" name="valid_id"></div>
     <div><label>Type of ID</label><input type="text" name="type_id"></div>
+
     <div>
       <label>Service Category</label>
       <select id="serviceCategory" name="service_category" onchange="updateSubservices()" required>
@@ -271,12 +267,14 @@ button:hover {
         <option value="disaster">Disaster & Relief Services</option>
       </select>
     </div>
+
     <div>
       <label>Sub-Service</label>
       <select id="subService" name="sub_service" required>
         <option value="">-- Select Category First --</option>
       </select>
     </div>
+
     <div><label>Date of Service</label><input type="date" name="service_date" required></div>
   </div>
 
@@ -294,6 +292,22 @@ button:hover {
 </div>
 
 <script>
+// ================= DO BIRTHDATE LIMIT (0–150 years) ================
+document.addEventListener("DOMContentLoaded", function () {
+    const dobField = document.getElementById("dob");
+    const today = new Date();
+
+    // Max = today
+    dobField.max = today.toISOString().split("T")[0];
+
+    // Min = today - 150 years
+    const minYear = today.getFullYear() - 150;
+    const minDate = new Date(today);
+    minDate.setFullYear(minYear);
+    dobField.min = minDate.toISOString().split("T")[0];
+});
+
+// ===================== SUBSERVICES =============================
 function updateSubservices() {
   const category = document.getElementById("serviceCategory").value;
   const subService = document.getElementById("subService");
@@ -324,7 +338,7 @@ function updateSubservices() {
   subService.innerHTML = options;
 }
 
-// Show popup if PHP set $showPopup
+// ===================== POPUP =============================
 <?php if ($showPopup): ?>
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("popupOverlay").style.display = "flex";
@@ -334,5 +348,6 @@ function redirectToView() {
 }
 <?php endif; ?>
 </script>
+
 </body>
 </html>

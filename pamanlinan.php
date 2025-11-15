@@ -173,6 +173,7 @@ button i{margin-right:6px;}
   </div>
   <ul>
     <li><a href="list.php"><i class="ri-database-2-line"></i>Main Records</a></li>
+     <li><a href="officials.php"><i class="ri-team-line"></i>Officials</a></li>
     <li><a href="all-forms-page.php"><i class="ri-file-list-line"></i>Forms</a></li>
     <li><a href="ageGroup.php"><i class="ri-user-heart-line"></i>Age Group</a></li>
     <li><a href="disabilitiesGroup.php"><i class="ri-wheelchair-line"></i>Disabilities</a></li>
