@@ -15,6 +15,25 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+
+// ✅ Fetch all officials from database
+$officials = [];
+try {
+    $stmt = $pdo->query("SELECT id, name, position FROM barangay_officials ORDER BY id ASC");
+    $officials = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $officials = [];
+}
+
+// ✅ Group officials by position
+$groupedOfficials = [];
+foreach ($officials as $official) {
+    $position = $official['position'] ?? 'Other';
+    if (!isset($groupedOfficials[$position])) {
+        $groupedOfficials[$position] = [];
+    }
+    $groupedOfficials[$position][] = $official;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -241,24 +260,19 @@ if (!isset($_SESSION['user_id'])) {
       <img src="pamanlinan-logo.png" alt="Barangay Logo" class="logo">
 
       <div class="officials">
-        <h3>Barangay Officials:</h3>
-        <p><strong>Jennifer M. Magno</strong><br>Punong Barangay</p>
-
-        <h3>Sangguniang Barangay:</h3>
-        <p>1. Demonteverde, Bernadeth Pancho</p>
-        <p>2. Sampayan, Jerry Tubo</p>
-        <p>3. Otugay, Limuel Delos Santos</p>
-        <p>4. Penande, Michelle Rodilla</p>
-        <p>5. Magno, Arvin De Castro</p>
-        <p>6. Delos Santos, Roque Sr. Corteza</p>
-        <p>7. Josafat, Florito Salazar</p>
-
-        <h3>Appointed Officials:</h3>
-      
-        <p><strong>Emmanuel J. Layupan</strong> – IPMR</p>
-        <p><strong>Darwin M. Rebuta</strong> – SK Chairperson</p>
-        <p><strong>Mrs. Sherlita T. Ramos</strong> – Barangay Secretary</p>
-        <p><strong>Mrs. Avelina F. Penande</strong> – Barangay Treasurer</p>
+        <?php if (!empty($groupedOfficials)): ?>
+          <?php foreach ($groupedOfficials as $position => $positionOfficials): ?>
+            <h3><?= htmlspecialchars($position) ?></h3>
+            <?php foreach ($positionOfficials as $official): ?>
+              <p>
+                <strong><?= htmlspecialchars($official['name']) ?></strong><br>
+                <?= htmlspecialchars($official['position']) ?>
+              </p>
+            <?php endforeach; ?>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <p>No officials data available.</p>
+        <?php endif; ?>
       </div>
     </main>
   </div>
