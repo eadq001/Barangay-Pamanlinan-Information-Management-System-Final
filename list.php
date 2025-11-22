@@ -53,6 +53,8 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
     $searchColumn = isset($_GET['search_column']) ? $_GET['search_column'] : '';
     $ageGroupDilg = isset($_GET['age_group_dilg_value']) ? $_GET['age_group_dilg_value'] : '';
     $ageGroupDisaster = isset($_GET['age_group_disaster_value']) ? $_GET['age_group_disaster_value'] : '';
+    $ageStart = isset($_GET['age_start']) ? trim($_GET['age_start']) : '';
+    $ageEnd = isset($_GET['age_end']) ? trim($_GET['age_end']) : '';
     $filteredPeople = $people;
     if (isset($filterOptions[$searchColumn])) {
       $filter = $filterOptions[$searchColumn];
@@ -121,11 +123,36 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
         $stmt = $pdo->prepare("SELECT * FROM people WHERE $col = ?");
         $stmt->execute([$val]);
         $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      } else if ($filter === 'age' && ($ageStart !== '' || $ageEnd !== '')) {
+        // Handle age range filtering for export when age inputs are provided
+        if ($ageStart !== '' && $ageEnd !== '') {
+          $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) >= ? AND CAST(age AS UNSIGNED) <= ? AND age NOT LIKE '%months%'");
+          $stmt->execute([$ageStart, $ageEnd]);
+        } else if ($ageStart !== '' && $ageEnd === '') {
+          $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+          $stmt->execute([$ageStart]);
+        } else if ($ageStart === '' && $ageEnd !== '') {
+          $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+          $stmt->execute([$ageEnd]);
+        }
+        $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
       } else if ($searchValue !== '') {
         $col = $filter;
         if ($col === 'age') {
-          $stmt = $pdo->prepare("SELECT * FROM people WHERE age = ? AND age NOT LIKE '%months%'");
-          $stmt->execute([$searchValue]);
+          // Handle age range filtering for export (fallback with search value)
+          if ($ageStart !== '' && $ageEnd !== '') {
+            $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) >= ? AND CAST(age AS UNSIGNED) <= ? AND age NOT LIKE '%months%'");
+            $stmt->execute([$ageStart, $ageEnd]);
+          } else if ($ageStart !== '' && $ageEnd === '') {
+            $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+            $stmt->execute([$ageStart]);
+          } else if ($ageStart === '' && $ageEnd !== '') {
+            $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+            $stmt->execute([$ageEnd]);
+          } else {
+            $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+            $stmt->execute([$searchValue]);
+          }
         } else {
           $stmt = $pdo->prepare("SELECT * FROM people WHERE $col LIKE ?");
           $stmt->execute(['%' . $searchValue . '%']);
@@ -393,6 +420,9 @@ $searchColumn = isset($_GET['search_column']) ? $_GET['search_column'] : '';
 // Add: get age group value if set
 $ageGroupDilg = isset($_GET['age_group_dilg_value']) ? $_GET['age_group_dilg_value'] : '';
 $ageGroupDisaster = isset($_GET['age_group_disaster_value']) ? $_GET['age_group_disaster_value'] : '';
+// Add: get age range values if set
+$ageStart = isset($_GET['age_start']) ? trim($_GET['age_start']) : '';
+$ageEnd = isset($_GET['age_end']) ? trim($_GET['age_end']) : '';
 $totalCount = $pdo->query("SELECT COUNT(*) FROM people")->fetchColumn();
 
 $filteredPeople = $people;
@@ -500,12 +530,44 @@ if (isset($filterOptions[$searchColumn])) {
     $stmt = $pdo->prepare("SELECT * FROM people WHERE $col = ?");
     $stmt->execute([$val]);
     $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  } else if ($filter === 'age' && ($ageStart !== '' || $ageEnd !== '')) {
+    // Handle age range filtering when age inputs are provided
+    if ($ageStart !== '' && $ageEnd !== '') {
+      // Both start and end provided: search for ages within range (cast to integer for numeric comparison)
+      $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) >= ? AND CAST(age AS UNSIGNED) <= ? AND age NOT LIKE '%months%'");
+      $stmt->execute([$ageStart, $ageEnd]);
+    } else if ($ageStart !== '' && $ageEnd === '') {
+      // Only start provided: search for that specific age
+      $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+      $stmt->execute([$ageStart]);
+    } else if ($ageStart === '' && $ageEnd !== '') {
+      // Only end provided: search for that specific age
+      $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+      $stmt->execute([$ageEnd]);
+    }
+    $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $resultCount = count($filteredPeople);
   } else if ($searchValue !== '') {
     $col = $filter;
     if ($col === 'age') {
-      // Exact match for age (exclude 'months' values)
-      $stmt = $pdo->prepare("SELECT * FROM people WHERE age = ? AND age NOT LIKE '%months%'");
-      $stmt->execute([$searchValue]);
+      // Handle age range filtering when search value is provided (fallback)
+      if ($ageStart !== '' && $ageEnd !== '') {
+        // Both start and end provided: search for ages within range (cast to integer for numeric comparison)
+        $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) >= ? AND CAST(age AS UNSIGNED) <= ? AND age NOT LIKE '%months%'");
+        $stmt->execute([$ageStart, $ageEnd]);
+      } else if ($ageStart !== '' && $ageEnd === '') {
+        // Only start provided: search for that specific age
+        $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+        $stmt->execute([$ageStart]);
+      } else if ($ageStart === '' && $ageEnd !== '') {
+        // Only end provided: search for that specific age
+        $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+        $stmt->execute([$ageEnd]);
+      } else {
+        // Neither provided, use search value
+        $stmt = $pdo->prepare("SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'");
+        $stmt->execute([$searchValue]);
+      }
     } else {
       $stmt = $pdo->prepare("SELECT * FROM people WHERE $col LIKE ?");
       $stmt->execute(['%' . $searchValue . '%']);
@@ -545,6 +607,12 @@ if (isset($filterOptions[$searchColumn])) {
         <option value="<?= htmlspecialchars($label) ?>" <?= $searchColumn === $label ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
       <?php endforeach; ?>
     </select>
+    <!-- Age Range inputs -->
+    <div id="ageRangeContainer" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input type="number" id="ageStart" name="age_start" placeholder="Start Age" value="<?= htmlspecialchars($ageStart) ?>" min="0" style="padding:7px 12px;border:1px solid #bbb;border-radius:4px;width:100px;">
+      <span style="color:#666;">to</span>
+      <input type="number" id="ageEnd" name="age_end" placeholder="End Age" value="<?= htmlspecialchars($ageEnd) ?>" min="0" style="padding:7px 12px;border:1px solid #bbb;border-radius:4px;width:100px;">
+    </div>
     <!-- Age Group DILG secondary filter -->
     <select id="ageGroupDilgSelect" name="age_group_dilg_value" style="padding:7px 10px;border:1px solid #bbb;border-radius:4px;display:none;">
       <option value="">Select Age Group</option>
@@ -702,6 +770,9 @@ $people = $filteredPeople;
   const searchForm = document.getElementById('searchForm');
   const ageGroupDilgSelect = document.getElementById('ageGroupDilgSelect');
   const ageGroupDisasterSelect = document.getElementById('ageGroupDisasterSelect');
+  const ageRangeContainer = document.getElementById('ageRangeContainer');
+  const ageStart = document.getElementById('ageStart');
+  const ageEnd = document.getElementById('ageEnd');
   let typingTimer;
   const doneTypingInterval = 350; // ms
 
@@ -715,46 +786,85 @@ $people = $filteredPeople;
   });
 
   columnSelect.addEventListener('change', function() {
-    if (columnSelect.value === 'Age Group DILG') {
+    if (columnSelect.value === 'Age') {
+      // Show age range inputs, hide search input
+      searchInput.style.display = 'none';
+      ageRangeContainer.style.display = 'flex';
+      ageGroupDilgSelect.style.display = 'none';
+      ageGroupDisasterSelect.style.display = 'none';
+      // Clear the search value for Age filter
       searchInput.value = '';
+    } else if (columnSelect.value === 'Age Group DILG') {
+      searchInput.style.display = 'none';
+      ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = '';
       ageGroupDisasterSelect.style.display = 'none';
-    } else if (columnSelect.value === 'Age Group DISASTER') {
+      ageStart.value = '';
+      ageEnd.value = '';
       searchInput.value = '';
+    } else if (columnSelect.value === 'Age Group DISASTER') {
+      searchInput.style.display = 'none';
+      ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = '';
+      ageStart.value = '';
+      ageEnd.value = '';
+      searchInput.value = '';
     } else {
+      // Show search input for other filters
+      searchInput.style.display = '';
+      ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = 'none';
-      searchInput.style.display = '';
+      ageStart.value = '';
+      ageEnd.value = '';
     }
-    toggleAgeGroupDilg();
     submitSearch();
   });
+
+  ageStart.addEventListener('input', function() {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(submitSearch, doneTypingInterval);
+  });
+
+  ageEnd.addEventListener('input', function() {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(submitSearch, doneTypingInterval);
+  });
+
   ageGroupDilgSelect.addEventListener('change', function() {
     submitSearch();
   });
+
   ageGroupDisasterSelect.addEventListener('change', function() {
     submitSearch();
   });
+
   function toggleAgeGroupDilg() {
-    if (columnSelect.value === 'Age Group DILG') {
+    if (columnSelect.value === 'Age') {
+      searchInput.style.display = 'none';
+      ageRangeContainer.style.display = 'flex';
+      ageGroupDilgSelect.style.display = 'none';
+      ageGroupDisasterSelect.style.display = 'none';
+    } else if (columnSelect.value === 'Age Group DILG') {
+      searchInput.style.display = 'none';
+      ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = '';
       ageGroupDisasterSelect.style.display = 'none';
-      searchInput.style.display = 'none';
     } else if (columnSelect.value === 'Age Group DISASTER') {
+      searchInput.style.display = 'none';
+      ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = '';
-      searchInput.style.display = 'none';
     } else {
+      searchInput.style.display = '';
+      ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = 'none';
-      searchInput.style.display = '';
     }
   }
   // On page load
   toggleAgeGroupDilg();
-  toggleAgeGroupDisaster();
 </script>
 
  

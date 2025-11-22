@@ -196,7 +196,7 @@ footer {
     <!-- Barangay Clearance -->
 <div class="card" onclick="window.location.href='clearances.php'">
   <i class="fa-solid fa-file-signature"></i>
-  <h3>Barangay Clearance</h3>
+  <h3>Clearances</h3>
   <p>Generate and manage barangay clearance forms for residents.</p>
 </div>
 
