@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barangay Pamanlinan | Official Website</title>
+  <style>
+    /* --- GENERAL STYLES --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background-color: #f0f4f0;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #0b6623;
+      color: white;
+      padding: 20px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    header .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    header img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    nav ul {
+      display: flex;
+      gap: 25px;
+      list-style: none;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: white;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: #ffd700;
+    }
+
+    /* --- MAIN CONTENT --- */
+    main {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 30px 5%;
+      gap: 25px;
+    }
+
+    section {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      flex: 1 1 45%;
+      min-width: 320px;
+    }
+
+    section h2 {
+      color: #0b6623;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+      border-left: 4px solid #0b6623;
+      padding-left: 10px;
+    }
+
+    ul {
+      list-style: none;
+      line-height: 1.8;
+    }
+
+    ul li {
+      padding: 5px 0;
+    }
+
+    /* --- CONTACT US --- */
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .contact-form button {
+      background: #0b6623;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .contact-form button:hover {
+      background: #09541d;
+    }
+
+    /* --- FOOTER --- */
+    footer {
+      background: #0b6623;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+    }
+
+    /* --- RESPONSIVE DESIGN --- */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      main {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <img src="pamanlinan.png" alt="Barangay Seal" />
+      <h1>Barangay Pamanlinan<br><small>Official Website</small></h1>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#" class="active">Home</a></li>
+        <li><a href="#">Officials</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <section>
+      <h2>Barangay Information</h2>
+      <p><strong>Barangay:</strong> Pamanlinan, San Jose City, Nueva Ecija</p>
+      <p><strong>Population:</strong> 2,134 Residents</p>
+      <p><strong>Zone:</strong> 4 Zones (Purok 1–4)</p>
+      <p><strong>Vision:</strong> A progressive and peaceful community promoting unity and sustainable development.</p>
+    </section>
+
+    <section>
+      <h2>Barangay Officials (2025)</h2>
+      <ul>
+        <li><strong>Chairperson:</strong> Demonteverde, Bernadeth Pancho</li>
+        <li><strong>Kagawad:</strong> Sampayan, Jerry Tubo</li>
+        <li><strong>Kagawad:</strong> Gabutan, Josefa Alivio</li>
+        <li><strong>Kagawad:</strong> Bataller, George Daguio</li>
+        <li><strong>Kagawad:</strong> Taruc, Genevieve Dela Cruz</li>
+        <li><strong>Kagawad:</strong> Tolentino, Edmar Lising</li>
+        <li><strong>Kagawad:</strong> Agustin, Brian Dela Cruz</li>
+        <li><strong>SK Chairperson:</strong> Dela Cruz, Alyssa Pancho</li>
+      </ul>
+    </section>
+
+    <section id="contact">
+      <h2>Contact Us</h2>
+      <form class="contact-form" onsubmit="event.preventDefault(); alert('Message sent! (for demo)')">
+        <input type="text" placeholder="Full Name" required />
+        <input type="email" placeholder="Email Address" required />
+        <textarea rows="4" placeholder="Your Message" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Community Programs</h2>
+      <ul>
+        <li>Clean & Green Initiative</li>
+        <li>Barangay Feeding Program</li>
+        <li>Livelihood Training for Women</li>
+        <li>Youth Sports Development</li>
+        <li>Health Awareness Campaigns</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2025 Barangay Pamanlinan | San Jose City, Nueva Ecija<br>
+    <small>All Rights Reserved</small>
+  </footer>
+
+</body>
+</html>
