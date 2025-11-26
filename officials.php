@@ -16,6 +16,36 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// ✅ Handle bulk update request
+$updateMessage = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update_officials'])) {
+    $updates = $_POST['officials'] ?? [];
+    $errorCount = 0;
+    $successCount = 0;
+    
+    foreach ($updates as $id => $data) {
+        $name = trim($data['name'] ?? '');
+        $position = trim($data['position'] ?? '');
+        
+        if ($id && $name && $position) {
+            try {
+                $stmt = $pdo->prepare("UPDATE barangay_officials SET name = ?, position = ? WHERE id = ?");
+                $stmt->execute([$name, $position, $id]);
+                $successCount++;
+            } catch (PDOException $e) {
+                $errorCount++;
+            }
+        }
+    }
+    
+    if ($successCount > 0) {
+        $updateMessage = '<div style="background:#4caf50;color:white;padding:10px;border-radius:4px;margin-bottom:15px;">✓ ' . $successCount . ' official(s) updated successfully!</div>';
+    }
+    if ($errorCount > 0) {
+        $updateMessage .= '<div style="background:#f44336;color:white;padding:10px;border-radius:4px;margin-bottom:15px;">✗ ' . $errorCount . ' update(s) failed.</div>';
+    }
+}
+
 // ✅ Fetch all officials from database
 $officials = [];
 try {
@@ -165,6 +195,158 @@ foreach ($officials as $official) {
 
     .officials p {
       margin: 3px 0;
+      padding: 8px;
+      border-radius: 4px;
+      transition: 0.2s;
+    }
+
+    .officials p:hover {
+      background-color: #f5f5f5;
+    }
+
+    .edit-all-btn {
+      background: #0b6b29;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .edit-all-btn:hover {
+      background: #037a2b;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 2% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 900px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #0b6b29;
+      padding-bottom: 10px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: #0b6b29;
+      font-size: 1.5rem;
+    }
+
+    .close-btn {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    .close-btn:hover {
+      color: #000;
+    }
+
+    /* Edit Table Styles */
+    .edit-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .edit-table th {
+      background-color: #0b6b29;
+      color: white;
+      padding: 10px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .edit-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .edit-table tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .edit-table input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    .edit-table input:focus {
+      outline: none;
+      border-color: #0b6b29;
+      box-shadow: 0 0 5px rgba(11, 107, 41, 0.3);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .btn-save {
+      background: #4caf50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .btn-save:hover {
+      background: #45a049;
+    }
+
+    .btn-cancel {
+      background: #999;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .btn-cancel:hover {
+      background: #777;
     }
 
     .social {
@@ -260,6 +442,11 @@ foreach ($officials as $official) {
       <img src="pamanlinan-logo.png" alt="Barangay Logo" class="logo">
 
       <div class="officials">
+        <?= $updateMessage ?>
+        <?php if (!empty($officials)): ?>
+          <button class="edit-all-btn" onclick="openEditAllModal()">Edit All Officials</button>
+        <?php endif; ?>
+        
         <?php if (!empty($groupedOfficials)): ?>
           <?php foreach ($groupedOfficials as $position => $positionOfficials): ?>
             <h3><?= htmlspecialchars($position) ?></h3>
@@ -277,6 +464,41 @@ foreach ($officials as $official) {
     </main>
   </div>
 
+  <!-- Edit All Officials Modal -->
+  <div id="editAllModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit All Officials</h2>
+        <button class="close-btn" onclick="closeEditAllModal()">&times;</button>
+      </div>
+      <form method="POST" action="">
+        <input type="hidden" name="bulk_update_officials" value="1">
+        
+        <table class="edit-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($officials as $official): ?>
+              <tr>
+                <td><input type="text" name="officials[<?= $official['id'] ?>][name]" value="<?= htmlspecialchars($official['name']) ?>" required></td>
+                <td><input type="text" name="officials[<?= $official['id'] ?>][position]" value="<?= htmlspecialchars($official['position']) ?>" required></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancel" onclick="closeEditAllModal()">Cancel</button>
+          <button type="submit" class="btn-save">Save All Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <footer>
     © 2025 Barangay Pamanlinan, City of Bislig | All Rights Reserved
   </footer>
@@ -289,6 +511,30 @@ foreach ($officials as $official) {
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    // Modal Functions
+    function openEditAllModal() {
+      document.getElementById('editAllModal').style.display = 'block';
+    }
+
+    function closeEditAllModal() {
+      document.getElementById('editAllModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside the content
+    window.onclick = function(event) {
+      const editAllModal = document.getElementById('editAllModal');
+      if (event.target === editAllModal) {
+        editAllModal.style.display = 'none';
+      }
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeEditAllModal();
+      }
+    });
   </script>
 
 </body>

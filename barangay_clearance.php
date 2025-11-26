@@ -137,10 +137,6 @@ if ($officials_result) {
 
   <div class="content">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <!-- Edit button placed above left-column; prints hidden -->
-        <button class="edit-officials-btn" id="openEditModal">✎ Edit Officials</button>
-      </div>
       <div style="text-align:right;">
         <!-- (keeps header area clean) -->
       </div>

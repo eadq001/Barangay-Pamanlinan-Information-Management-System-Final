@@ -55,8 +55,37 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
     $ageGroupDisaster = isset($_GET['age_group_disaster_value']) ? $_GET['age_group_disaster_value'] : '';
     $ageStart = isset($_GET['age_start']) ? trim($_GET['age_start']) : '';
     $ageEnd = isset($_GET['age_end']) ? trim($_GET['age_end']) : '';
+    $selectedPurok = isset($_GET['purok_filter']) ? trim($_GET['purok_filter']) : '';
     $filteredPeople = $people;
-    if (isset($filterOptions[$searchColumn])) {
+    // Check if Age filter is selected with age range - combine with purok if needed
+    if (isset($filterOptions[$searchColumn]) && $filterOptions[$searchColumn] === 'age' && ($ageStart !== '' || $ageEnd !== '')) {
+      // Handle age range filtering with optional purok filter
+      if ($ageStart !== '' && $ageEnd !== '') {
+        $query = "SELECT * FROM people WHERE CAST(age AS UNSIGNED) >= ? AND CAST(age AS UNSIGNED) <= ? AND age NOT LIKE '%months%'";
+        $params = [$ageStart, $ageEnd];
+      } else if ($ageStart !== '' && $ageEnd === '') {
+        $query = "SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'";
+        $params = [$ageStart];
+      } else if ($ageStart === '' && $ageEnd !== '') {
+        $query = "SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'";
+        $params = [$ageEnd];
+      }
+      
+      // Add purok filter if selected
+      if ($selectedPurok !== '') {
+        $query .= " AND purok_name = ?";
+        $params[] = $selectedPurok;
+      }
+      
+      $stmt = $pdo->prepare($query);
+      $stmt->execute($params);
+      $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else if ($selectedPurok !== '') {
+      // Check for purok filter only (when Age filter is not selected with age range)
+      $stmt = $pdo->prepare("SELECT * FROM people WHERE purok_name = ?");
+      $stmt->execute([$selectedPurok]);
+      $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else if (isset($filterOptions[$searchColumn])) {
       $filter = $filterOptions[$searchColumn];
       if ($filter === 'womens_association') {
         $stmt = $pdo->prepare("SELECT * FROM people WHERE womens_association = 'yes'");
@@ -172,6 +201,11 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
       }
       $stmt = $pdo->prepare("SELECT * FROM people WHERE " . implode(' OR ', $where));
       $stmt->execute($params);
+      $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } elseif ($selectedPurok !== '') {
+      // Filter by selected purok for export
+      $stmt = $pdo->prepare("SELECT * FROM people WHERE purok_name = ?");
+      $stmt->execute([$selectedPurok]);
       $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     // Determine export filename based on filter
@@ -423,12 +457,44 @@ $ageGroupDisaster = isset($_GET['age_group_disaster_value']) ? $_GET['age_group_
 // Add: get age range values if set
 $ageStart = isset($_GET['age_start']) ? trim($_GET['age_start']) : '';
 $ageEnd = isset($_GET['age_end']) ? trim($_GET['age_end']) : '';
+// Add: get purok filter if set
+$selectedPurok = isset($_GET['purok_filter']) ? trim($_GET['purok_filter']) : '';
 $totalCount = $pdo->query("SELECT COUNT(*) FROM people")->fetchColumn();
 
 $filteredPeople = $people;
 $resultCount = count($people);
 
-if (isset($filterOptions[$searchColumn])) {
+// Check if Age filter is selected with age range - combine with purok if needed
+if (isset($filterOptions[$searchColumn]) && $filterOptions[$searchColumn] === 'age' && ($ageStart !== '' || $ageEnd !== '')) {
+  // Handle age range filtering with optional purok filter
+  if ($ageStart !== '' && $ageEnd !== '') {
+    $query = "SELECT * FROM people WHERE CAST(age AS UNSIGNED) >= ? AND CAST(age AS UNSIGNED) <= ? AND age NOT LIKE '%months%'";
+    $params = [$ageStart, $ageEnd];
+  } else if ($ageStart !== '' && $ageEnd === '') {
+    $query = "SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'";
+    $params = [$ageStart];
+  } else if ($ageStart === '' && $ageEnd !== '') {
+    $query = "SELECT * FROM people WHERE CAST(age AS UNSIGNED) = ? AND age NOT LIKE '%months%'";
+    $params = [$ageEnd];
+  }
+  
+  // Add purok filter if selected
+  if ($selectedPurok !== '') {
+    $query .= " AND purok_name = ?";
+    $params[] = $selectedPurok;
+  }
+  
+  $stmt = $pdo->prepare($query);
+  $stmt->execute($params);
+  $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $resultCount = count($filteredPeople);
+} else if ($selectedPurok !== '') {
+  // Check for purok filter only (when Age filter is not selected with age range)
+  $stmt = $pdo->prepare("SELECT * FROM people WHERE purok_name = ?");
+  $stmt->execute([$selectedPurok]);
+  $filteredPeople = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $resultCount = count($filteredPeople);
+} else if (isset($filterOptions[$searchColumn])) {
   $filter = $filterOptions[$searchColumn];
   if ($filter === 'womens_association') {
     // Show only rows where womens_association is 'yes'
@@ -635,10 +701,21 @@ if (isset($filterOptions[$searchColumn])) {
       <option value="Adult 51-65 years old" <?= $ageGroupDisaster === 'Adult 51-65 years old' ? 'selected' : '' ?>>Adult 51-65 years old</option>
       <option value="Adult 66 years old and above" <?= $ageGroupDisaster === 'Adult 66 years old and above' ? 'selected' : '' ?>>Adult 66 years old and above</option>
     </select>
-    <!-- Search button removed -->
-  </form>
+    <!-- Purok Filter -->
+    <select id="purokSelect" name="purok_filter" style="padding:7px 10px;border:1px solid #bbb;border-radius:4px;">
+      <option value="">All Puroks</option>
+      <?php
+        // Fetch unique puroks from database
+        $stmtPurok = $pdo->query("SELECT DISTINCT purok_name FROM people WHERE purok_name IS NOT NULL AND purok_name != '' ORDER BY purok_name ASC");
+        $puroks = $stmtPurok->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($puroks as $purok):
+      ?>
+        <option value="<?= htmlspecialchars($purok) ?>" <?= $selectedPurok === $purok ? 'selected' : '' ?>><?= htmlspecialchars($purok) ?></option>
+      <?php endforeach; ?>
+    </select>
+    <!-- Search button removed -->  </form>
   <span id="resultCount" style="font-size:15px;color:#444;display:inline;margin-left:-30px"></span>
-    Showing <?= $resultCount ?> out of <?= $totalCount ?> result<?= $resultCount === 1 ? '' : 's' ?>
+  Showing <?= $resultCount ?> out of <?= $totalCount ?> result<?= $resultCount === 1 ? '' : 's' ?>
   </span>
   <button id="exportBtn" style="padding:7px 18px;background:#6ca0a3;color:#fff;border:none;border-radius:4px;font-size:15px;cursor:pointer;">Export to Excel</button>
   <!-- <button id="printBtn" style="padding:7px 18px;background:#6ca0a3;color:#fff;border:none;border-radius:4px;font-size:15px;cursor:pointer;">Print</button> -->
@@ -773,6 +850,7 @@ $people = $filteredPeople;
   const ageRangeContainer = document.getElementById('ageRangeContainer');
   const ageStart = document.getElementById('ageStart');
   const ageEnd = document.getElementById('ageEnd');
+  const purokSelect = document.getElementById('purokSelect');
   let typingTimer;
   const doneTypingInterval = 350; // ms
 
@@ -787,11 +865,12 @@ $people = $filteredPeople;
 
   columnSelect.addEventListener('change', function() {
     if (columnSelect.value === 'Age') {
-      // Show age range inputs, hide search input
+      // Show age range inputs and purok selection
       searchInput.style.display = 'none';
       ageRangeContainer.style.display = 'flex';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = 'none';
+      purokSelect.style.display = '';
       // Clear the search value for Age filter
       searchInput.value = '';
     } else if (columnSelect.value === 'Age Group DILG') {
@@ -799,6 +878,7 @@ $people = $filteredPeople;
       ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = '';
       ageGroupDisasterSelect.style.display = 'none';
+      purokSelect.style.display = 'none';
       ageStart.value = '';
       ageEnd.value = '';
       searchInput.value = '';
@@ -807,6 +887,7 @@ $people = $filteredPeople;
       ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = '';
+      purokSelect.style.display = 'none';
       ageStart.value = '';
       ageEnd.value = '';
       searchInput.value = '';
@@ -816,6 +897,7 @@ $people = $filteredPeople;
       ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = 'none';
+      purokSelect.style.display = 'none';
       ageStart.value = '';
       ageEnd.value = '';
     }
@@ -840,27 +922,35 @@ $people = $filteredPeople;
     submitSearch();
   });
 
+  purokSelect.addEventListener('change', function() {
+    submitSearch();
+  });
+
   function toggleAgeGroupDilg() {
     if (columnSelect.value === 'Age') {
       searchInput.style.display = 'none';
       ageRangeContainer.style.display = 'flex';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = 'none';
+      purokSelect.style.display = '';
     } else if (columnSelect.value === 'Age Group DILG') {
       searchInput.style.display = 'none';
       ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = '';
       ageGroupDisasterSelect.style.display = 'none';
+      purokSelect.style.display = 'none';
     } else if (columnSelect.value === 'Age Group DISASTER') {
       searchInput.style.display = 'none';
       ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = '';
+      purokSelect.style.display = 'none';
     } else {
       searchInput.style.display = '';
       ageRangeContainer.style.display = 'none';
       ageGroupDilgSelect.style.display = 'none';
       ageGroupDisasterSelect.style.display = 'none';
+      purokSelect.style.display = 'none';
     }
   }
   // On page load
@@ -896,9 +986,31 @@ $people = $filteredPeople;
     </thead>
     <tbody id="dataTable">
       <?php
-      // Sort people array by last name alphabetically
-      usort($people, function ($a, $b) {
-        return strcmp($a['last_name'], $b['last_name']);
+      // Sort people array - if age filter is active, sort by age primarily; otherwise sort by last name then age
+      $isAgeFilterActive = (isset($filterOptions[$searchColumn]) && $filterOptions[$searchColumn] === 'age' && ($ageStart !== '' || $ageEnd !== ''));
+      
+      usort($people, function ($a, $b) use ($isAgeFilterActive) {
+        if ($isAgeFilterActive) {
+          // When age filter is active, sort by age ascending (primary), then by last name
+          $ageA = is_numeric($a['age']) ? (int)$a['age'] : 0;
+          $ageB = is_numeric($b['age']) ? (int)$b['age'] : 0;
+          $ageCmp = $ageA - $ageB;
+          if ($ageCmp !== 0) {
+            return $ageCmp;
+          }
+          // If same age, sort by last name
+          return strcmp($a['last_name'], $b['last_name']);
+        } else {
+          // Default: sort by last name alphabetically, then by age ascending
+          $lastNameCmp = strcmp($a['last_name'], $b['last_name']);
+          if ($lastNameCmp !== 0) {
+            return $lastNameCmp;
+          }
+          // If last names are same, sort by age ascending (lower ages first)
+          $ageA = is_numeric($a['age']) ? (int)$a['age'] : 0;
+          $ageB = is_numeric($b['age']) ? (int)$b['age'] : 0;
+          return $ageA - $ageB;
+        }
       });
       ?>
       
